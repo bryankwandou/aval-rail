@@ -121,7 +121,7 @@ and did nothing. Two are upstream defects rather than ours:
 Also: `instructions` is not a key this host reads (the persona belongs in
 `agents/<alias>/workspace/IDENTITY.md`), `[channels.telegram]` must be
 `.default` under schema v3, and `execution_mode` is really
-`default_execution_mode`. Full list in [`01-BUILD-LOG.md`](01-BUILD-LOG.md).
+`default_execution_mode`. Full list in [`docs/01-BUILD-LOG.md`](docs/01-BUILD-LOG.md).
 
 ## Licence
 
