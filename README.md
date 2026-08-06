@@ -36,8 +36,11 @@ The first returns `confirmationStatus: finalized`. The second returns one
 signature and no others — which is what makes settlement detectable when many
 orders share a single shop wallet.
 
-To run the agent itself (Telegram, approval gate, the wasm tools) follow
-[VERIFICATION.md](VERIFICATION.md) §6.
+To run the agent itself, follow [SETUP.md](SETUP.md). The component ships
+prebuilt in [`dist/`](dist/) with a checksum, so you do not need a wasm
+toolchain — though the ZeroClaw host still has to be built from source with
+`--features plugins-wasm-cranelift`, which is stated plainly there because it is
+the main reason someone bounces.
 
 ## The name
 
