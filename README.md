@@ -3,9 +3,18 @@
 **A shop till that lives in the owner's chat, built on the one Solana primitive
 that lets an agent's payment survive the person approving it.**
 
-[aval-site.vercel.app](https://aval-site.vercel.app) · Telegram
-[@avalrailbot](https://t.me/avalrailbot) · [Verification
-sheet](VERIFICATION.md) · [Showcase](SHOWCASE-POST.md)
+| | |
+|---|---|
+| **Problem** | A Solana blockhash expires in ~90s. An approval gate in front of an agent's payment kills the transaction before anyone answers. |
+| **Solution** | Anchor it to a durable nonce. The request waits as long as the shop does. |
+| **Live demo** | [aval-site.vercel.app](https://aval-site.vercel.app) · Telegram [@avalrailbot](https://t.me/avalrailbot) |
+| **Video** | 80s — `video/remotion/` renders it; the same command reproduces the file |
+| **Chain** | Solana devnet — signatures in the table below, all re-checkable on Explorer |
+| **Custody** | **T0** on the charge path: no key held, nothing signed, nothing submitted |
+| **Stack** | ZeroClaw 0.8.4 · Rust → `wasm32-wasip2` · Solana Pay · Telegram + HTTP gateway |
+| **Built** | 2 wasm components · 3 SOP procedures · 1 skill · 1 agent identity |
+| **Reproduce** | [`VERIFICATION.md`](VERIFICATION.md) — every claim below, without trusting us |
+| **Status** | Running unattended; both supervisors autostart at logon |
 
 ---
 
