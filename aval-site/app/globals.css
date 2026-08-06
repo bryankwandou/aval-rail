@@ -1,0 +1,267 @@
+@import "tailwindcss";
+
+/*
+  Aval — the ledger palette.
+
+  A payments page should look like the counter it sits on, not like a crypto
+  landing page. The ground is near-black with a warm bias rather than a blue
+  one, the paper tone is bone, and the single accent is the amber of a printed
+  receipt. One accent, spent on the thing being read.
+
+  Single visual world on purpose. This page commits to a dark counter under shop
+  lighting; there is no light variant, the same way a terminal has none.
+*/
+:root {
+  --ink: #0a0b0e;
+  --ink-2: #101218;
+  --panel: #14161d;
+  --line: #232733;
+  --line-2: #2f3441;
+  --bone: #ece7dd;
+  --bone-dim: #b8b3a9;
+  --muted: #7e838f;
+  --amber: #e8a33d;
+  --amber-deep: #b47a24;
+  --teal: #62b898;
+  --red: #cf6a58;
+
+  --font-sans: var(--font-geist-sans), "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), "Cascadia Mono", Consolas, monospace;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-panel: var(--panel);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-bone: var(--bone);
+  --color-bone-dim: var(--bone-dim);
+  --color-muted: var(--muted);
+  --color-amber: var(--amber);
+  --color-teal: var(--teal);
+  --color-red: var(--red);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--ink);
+  /* `overflow-x: hidden` on body alone does not stop the document itself from
+     scrolling sideways; the root element has to be clipped too. `clip` rather
+     than `hidden` so this does not silently create a scroll container that
+     breaks `position: sticky` further down the page. */
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+body {
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--amber);
+  color: #171104;
+}
+
+/*
+  Figures line up wherever they are read in a column or compared to each other,
+  which on this page is everywhere: uptimes, balances, incident numbers, the
+  clock in the terminal.
+*/
+.font-mono,
+code,
+pre {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+  Uppercase eyebrows sit optically low against the headline that follows them,
+  because capitals have no descenders. A hair of extra space below reads as
+  even; the same value on both sides does not.
+*/
+.eyebrow {
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
+/*
+  A grid or flex child defaults to `min-width: auto`, which means it refuses to
+  shrink below its content. Put a base58 address inside one and the child pushes
+  the whole page sideways — measured at 390px, where the document was 40px wider
+  than the viewport. This is the fix, and the `pre` rule is its other half.
+*/
+body > *,
+main .grid > *,
+main .flex > * {
+  min-width: 0;
+}
+
+/*
+  `body` is a flex column from the scaffold layout, and a flex item's default
+  `min-width: auto` lets it grow past its container. That is why `main` measured
+  644px inside a 390px viewport while every ancestor looked innocent — the
+  overflow was one rule above everything being inspected.
+*/
+body {
+  min-width: 0;
+}
+
+/*
+  The actual mechanism, which took three attempts to pin down. In a column flex
+  container the line's cross size is the largest item's hypothetical cross size,
+  and items stretch to the line rather than to the container. So `main` sized
+  itself to its own max-content — 644px — and stretched to that inside a 390px
+  body, with every ancestor reporting innocent numbers. Giving it an explicit
+  width makes it use the container instead of its content.
+*/
+body > main,
+body > header,
+body > footer {
+  width: 100%;
+  max-width: 100%;
+}
+
+pre {
+  max-width: 100%;
+}
+
+/*
+  Sections animate in on scroll. If scripting is off they would stay at opacity
+  0 forever, so the page would be blank to a crawler, a reader-mode view, or
+  anyone who has disabled JS. Reveal everything in that case.
+*/
+noscript ~ * [data-reveal],
+.no-js [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Keyboard focus has to be visible on a page about money. */
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/*
+  Everything below is motion, and all of it is switched off by one media query.
+  A page that cannot be turned down fails an accessibility review, and a
+  payments page failing one is a bad look on a slide about trust.
+*/
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@keyframes caret {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes drift {
+  0% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -10px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes sweep {
+  from { background-position: -180% 0; }
+  to { background-position: 280% 0; }
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(98, 184, 152, 0.35); }
+  70% { box-shadow: 0 0 0 9px rgba(98, 184, 152, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(98, 184, 152, 0); }
+}
+
+.caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  background: var(--amber);
+  vertical-align: -0.16em;
+  animation: caret 1.05s steps(1, end) infinite;
+}
+
+.drift {
+  animation: drift 7s ease-in-out infinite;
+}
+
+.live-dot {
+  animation: pulse-ring 2.4s ease-out infinite;
+}
+
+/* The grain keeps large dark areas from banding on a projector. */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>");
+}
+
+/*
+  Radius by role, not one value repeated. A terminal is a housing, a card is a
+  sheet, a control is a key. They should not share a corner.
+*/
+.r-housing { border-radius: 16px; }
+.r-sheet   { border-radius: 11px; }
+.r-key     { border-radius: 7px; }
+
+/*
+  The one moment on the page worth remembering: the endorsement stroke from the
+  mark, drawn once across the hero on load. It is the brand idea made literal —
+  a signature laid across an obligation — and it never repeats, because a thing
+  that happens twice is decoration.
+*/
+@keyframes endorse {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+
+.endorse-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: endorse 1500ms cubic-bezier(.16, .9, .3, 1) 380ms forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .endorse-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+.rule-sweep {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(232, 163, 61, 0) 35%,
+    rgba(232, 163, 61, 0.55) 50%,
+    rgba(232, 163, 61, 0) 65%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  animation: sweep 5.5s linear infinite;
+}

@@ -1,0 +1,44 @@
+[sop]
+name = "settlement-poll"
+description = "Check pending charges for on-chain settlement and confirm them back into the operator's channel."
+version = "1.0.0"
+
+# One sweep at a time. A second concurrent sweep would re-read the same pending
+# charges and risk announcing the same payment twice.
+max_concurrent = 1
+admission_policy = "coalesce"
+
+# ---------------------------------------------------------------------------
+# Why this is `manual` and not `cron`
+# ---------------------------------------------------------------------------
+# It was a cron trigger. Running it proved that cannot work, and the failure is
+# worth carrying in the file rather than in a commit message.
+#
+# A cron trigger fires with no agent turn behind it, so the engine drives the
+# run headlessly. `drive_headless_deterministic` executes only `kind: capability`
+# steps; every ordinary step fails closed with `headless_driver_missing`. The
+# two capability steps that exist are `llm.generate` (one bounded model call, no
+# tools) and `forge.comment`. Neither can reach an RPC endpoint.
+#
+# So a cron SOP cannot poll a chain. Observed, not theorised:
+#
+#   det-1785774656040896700-0001  settlement-poll  status=failed  step=1/4
+#   kind   = headless_driver_missing
+#   reason = Headless deterministic SOP step 1 'Collect pending charges'
+#            requires an external driver; it was not executed
+#
+# The primitive that does work is the heartbeat, which schedules a real agent
+# turn — and an agent turn has tools. The shop config sets:
+#
+#   [heartbeat]
+#   enabled = true
+#   agent = "caixa"
+#   interval_minutes = 5
+#   message = "Check pending charges for settlement..."
+#
+# The heartbeat turn fires this procedure. The honest cost: polling floors at
+# five minutes rather than one, so a customer can wait up to five minutes for
+# the confirmation line. That is worse than the cron design claimed, and it is
+# the real number.
+[[triggers]]
+type = "manual"

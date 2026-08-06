@@ -1,0 +1,32 @@
+<!--
+  Aval — the mark.
+
+  An aval is a surety: you guarantee someone else's obligation by adding your
+  signature across it. Historically that signature went on the back of a bill of
+  exchange, written over the note rather than beside it.
+
+  So the mark is not a letter with decoration. It is an A whose crossbar is that
+  endorsement — a single stroke laid across the obligation, overshooting the
+  letterform on the right and lifting off the page at the end, the way a pen
+  does. The overshoot is the whole idea: the guarantee is wider than the thing
+  it guarantees.
+
+  Two strokes, one weight, no gradient, no container shape. It survives at 16px
+  in a browser tab, which is where a logo actually has to work.
+
+  currentColor throughout, so one file serves both themes.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"
+     role="img" aria-label="Aval">
+  <title>Aval</title>
+
+  <!-- the obligation: the A -->
+  <path d="M18 51 L32 15 L46 51"
+        stroke="currentColor" stroke-width="5"
+        stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- the endorsement: laid across it, overshooting, lifting at the end -->
+  <path d="M11 40 H53 l5 -7"
+        stroke="currentColor" stroke-width="5"
+        stroke-linecap="round" stroke-linejoin="round" />
+</svg>
