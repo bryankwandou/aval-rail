@@ -26,6 +26,11 @@ screenshot.
 
 ## The use case: a shop till that lives in the owner's chat
 
+Built for the owner who is already in the chat all day — the café or warung
+pattern Superteam Brasil knows better than anyone, settling in USDC. No PIX rail
+here, and I am not going to claim one: what is built is the USDC reconciliation
+half, and a Brazilian shop owner is the person it is shaped around.
+
 `charge table 4, 25 USDC` → a Solana Pay request the customer settles from any
 wallet → the agent watches the chain → refunds wait for the owner.
 
@@ -42,6 +47,41 @@ that transaction and no other. That is what makes settlement detectable when
 many orders share one shop wallet. The SPL payment read decimals from the mint
 and used `transferChecked`, so a client that computed base units wrongly fails
 loudly instead of moving the wrong amount.
+
+## Why this needed Tier 3, and where it deliberately did not
+
+The brief is explicit that correct layering is scored, and that a thin
+single-RPC wrapper padded into WASM is a skill plus the built-in http tool. So,
+plainly, what is *not* in a component:
+
+- **Building the Solana Pay string.** That is string concatenation. It lives in a
+  skill.
+- **Settlement.** One `getSignaturesForAddress` on the reference key, through the
+  built-in http tool on a cron SOP. No component.
+- **The approval gate.** ZeroClaw's own checkpoint. No component.
+
+Two things are in Rust, and only two, because at Tier 1 they are advisory:
+
+**The ceiling and the token allowlist.** At Tier 1 these are text in a skill, and
+text is something the model can be argued out of. This is not hypothetical here
+— the model fabricated a completed charge four separate times during the build,
+including `"Table 4 has been charged"` with `native_tool_calls: 0` behind it. A
+limit written in a prompt is a limit that survives exactly as long as the model
+stays cooperative. Compiled into a component with
+`permissions = ["config_read"]`, the ceiling is **not one of the arguments the
+tool accepts**, so no message arriving in the shop can raise it and no
+persuasion reaches it. The schema is `additionalProperties: false`, so a
+recipient cannot be supplied either.
+
+**The nonce-anchored transaction.** `AdvanceNonceAccount` must be instruction
+zero, and the reference must be a read-only non-signer in the correct position.
+Both are byte-layout requirements. Asked to produce these as text, the model
+invented `https://example.com/generate-reference-key` rather than admit it could
+not — twice, at two different steps.
+
+The test of whether Tier 3 was necessary is whether removing it changes what an
+attacker can do. Here it does: at Tier 1 the ceiling is a sentence, and the
+prompt-injection transcript shows what happens to sentences.
 
 ## Custody: T0 on the charge path
 
@@ -79,41 +119,6 @@ phrased as ordinary business:
 Behind that sits an outbound address filter: an address may leave the till only
 if it appeared in the owner's own request or is the shop's configured recipient.
 Anything else the model produced is withheld and logged.
-
-## Why this needed Tier 3, and where it deliberately did not
-
-The brief is explicit that correct layering is scored, and that a thin
-single-RPC wrapper padded into WASM is a skill plus the built-in http tool. So,
-plainly, what is *not* in a component:
-
-- **Building the Solana Pay string.** That is string concatenation. It lives in a
-  skill.
-- **Settlement.** One `getSignaturesForAddress` on the reference key, through the
-  built-in http tool on a cron SOP. No component.
-- **The approval gate.** ZeroClaw's own checkpoint. No component.
-
-Two things are in Rust, and only two, because at Tier 1 they are advisory:
-
-**The ceiling and the token allowlist.** At Tier 1 these are text in a skill, and
-text is something the model can be argued out of. This is not hypothetical here
-— the model fabricated a completed charge four separate times during the build,
-including `"Table 4 has been charged"` with `native_tool_calls: 0` behind it. A
-limit written in a prompt is a limit that survives exactly as long as the model
-stays cooperative. Compiled into a component with
-`permissions = ["config_read"]`, the ceiling is **not one of the arguments the
-tool accepts**, so no message arriving in the shop can raise it and no
-persuasion reaches it. The schema is `additionalProperties: false`, so a
-recipient cannot be supplied either.
-
-**The nonce-anchored transaction.** `AdvanceNonceAccount` must be instruction
-zero, and the reference must be a read-only non-signer in the correct position.
-Both are byte-layout requirements. Asked to produce these as text, the model
-invented `https://example.com/generate-reference-key` rather than admit it could
-not — twice, at two different steps.
-
-The test of whether Tier 3 was necessary is whether removing it changes what an
-attacker can do. Here it does: at Tier 1 the ceiling is a sentence, and the
-prompt-injection transcript shows what happens to sentences.
 
 ## Every guard ships a test that proves it can fail
 
