@@ -175,6 +175,41 @@ each and watching it return.
 Because `/health` lies about channels, the till exposes `GET /truth`, which asks
 nothing about itself — it calls Telegram's `getMe` and reports what came back.
 
+## The same primitive, reached from another surface
+
+One paragraph, because the till is the submission and this is not.
+
+x402 assumes a payment resolves inside one HTTP round trip, which holds for a
+$0.002 API call and breaks the moment a person has to look at something. The
+policy tier in `video/till/x402-cosign.js` returns `402` with a co-sign
+challenge above an operator-set threshold, carrying `anchored: durable-nonce`
+and `expires: null` — there is no honest deadline to put there, which is the
+whole point. It has been bitten by a real settlement: the component minted
+`39scwbLKD5dH6fXFp4wugf41qGpJDB7imuyYoGuEYoPu`, the policy classified it
+`cosign`, a human approved, and the payment landed as
+`43Q9pBwTy9HApizdRo5agbswsqJrEy2DgJBWhjbTxpi7BtSRSn99sUUZK97p5iCyRRpBPEQtegJew9yH4sifUjq7`.
+There is no live facilitator behind it and `max_concurrent = 1`, so
+`expires: null` is honest for one co-sign and a debt for a queue. It is in the
+repo as evidence the primitive does not die on one surface, not as a pitch.
+
+## What this is not
+
+- **One payment closed end to end, not a day of traffic.** The loop works. A
+  shop's worth of it has not been run.
+- **One operator.** Me. No second deployment, no stranger, no week.
+- **`max_concurrent = 1`.** One nonce account, one co-sign in flight. Parallel
+  approvals queue.
+- **No live x402 facilitator.** Policy tier and a real settlement, not an
+  integration.
+- **No PIX rail.** The USDC reconciliation half is built; the Brazilian payment
+  rail is not, and the Portuguese name does not change that.
+- **No WhatsApp.** It needs Meta Business review — external approval, not code.
+  Two channels work: Telegram and the daemon's HTTP gateway.
+- **The last settlement ran with no model in the path**, because both provider
+  free tiers were spent. The code path exercised is the one the tool calls;
+  which surface asked is not the security claim. Said plainly rather than
+  omitted.
+
 ## Check it without trusting us
 
 - **Site:** https://aval-site.vercel.app
