@@ -1,4 +1,4 @@
-# Aval
+# Caixa
 
 **A shop till that lives in the owner's chat, settles in USDC, and holds refunds
 until a human says yes.**
