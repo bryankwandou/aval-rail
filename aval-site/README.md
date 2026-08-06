@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# aval-site
 
-## Getting Started
+The public page for [Aval](../README.md) — live at
+[aval-site.vercel.app](https://aval-site.vercel.app).
 
-First, run the development server:
+Next.js 16, Tailwind v4, no animation library. Scroll reveals are an
+`IntersectionObserver` and a CSS transition: a landing page does not need a
+physics engine to move eighteen pixels, and every dependency is one more thing
+that can break a deploy the night before it matters.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # localhost:3000
+npm run build    # what Vercel runs
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What is here
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| | |
+|---|---|
+| `app/page.tsx` | the whole page — hero, the problem, devnet proof, custody ladder, the four model fabrications, the config traps |
+| `app/components/Till.tsx` | the hero terminal. Replays a recorded run, and the page says so rather than implying a live connection |
+| `app/components/Nav.tsx` | rewritten after the previous nav stacked two text layers at 14px and rendered `Bullreauest` |
+| `app/components/Endorsement.tsx` | the mark's stroke, drawn once across the hero on load |
+| `app/components/Reveal.tsx` | scroll entrance, with a three-second failsafe so a full-page screenshot never captures blank sections |
+| `app/globals.css` | tokens, motion, and the layout fixes below |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Two bugs worth keeping in the record
 
-## Learn More
+**Mobile overflow.** At 390px the document was 644px wide. `html`, `body` and
+every ancestor reported innocent numbers — `main` was the one at 644, with
+`min-width: 0` already set. In a column flex container the line's cross size is
+the largest item's hypothetical cross size, and items stretch to the line rather
+than to the container, so `main` sized itself to its own max-content. Fixed with
+an explicit width on the top-level landmarks, plus `minmax(0,1fr)` on the hero
+grid so a 56-character base58 mint cannot set the column width.
 
-To learn more about Next.js, take a look at the following resources:
+**Invisible sections.** `Reveal` starts *visible* and only hides once the client
+has confirmed it can observe and un-hide it again. Starting hidden would have
+meant server-rendered HTML full of invisible sections — blank to a crawler, to
+reader mode, and to anyone with scripting off.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+vercel deploy --prod
+```
 
-## Deploy on Vercel
+Then verify anonymously, because a checkpoint on the account will 403 a reader
+without warning:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+curl -s -o /dev/null -w "%{http_code}" https://aval-site.vercel.app   # 200
+```

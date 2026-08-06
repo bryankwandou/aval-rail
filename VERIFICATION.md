@@ -209,20 +209,20 @@ length and was garbage from the first frame. Every file above survived
 
 ## What this sheet does not claim
 
-- **The settled payment above was native SOL, not an SPL token.** An SPL request
-  needs token accounts on both sides and the customer's wallet should be the one
-  to create them. The reference mechanism is identical either way — it is the
-  same read-only account in the same position — but a USDC settlement has not
-  been run end to end.
+- **Both settlement paths are closed.** Native SOL (`2enW3Y91…`) and SPL
+  (`5hFq5bnk…`, decimals read from the mint, `transferChecked`, recipient token
+  account created by the customer's wallet). What has *not* been run is a day of
+  traffic, or several references in flight at once.
 - **One payment, not a week of them.** The loop is proven; a shop's worth of
   traffic through it is not.
 - **No WhatsApp channel exists.** It needs a Meta Business account and app
   review — external approval, not code. Two channels work: Telegram and the
   daemon's own HTTP gateway.
-- **The outbound address filter is specified, not built.** The injection drill
-  found the agent will echo an attacker-supplied address in prose;
-  `untrusted_outbound_redact = true` did not redact it. No tool ran and no key
-  exists, so nothing moved — but the hole is real and it is not closed.
+- **The outbound address filter is built and tested**, in `video/till/server.js`
+  with six negative controls in `video/till/filter.test.js`. An address leaves
+  the till only if it appeared in the owner's own request or is the shop's
+  configured recipient. It runs at the till, not inside the agent, so an
+  operator on a different front end does not inherit it.
 - **Testing is thinner than the strongest competing entry.** ~20 tests, and no
   negative controls that must fail. A check nobody has watched fail is
   decoration.
