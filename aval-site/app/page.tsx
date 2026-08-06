@@ -419,7 +419,7 @@ curl http://127.0.0.1:42617/health     # the daemon answers for itself`}
             <Mark size={22} />
           </span>
           <p className="text-[14.5px] text-muted">
-            Aval — the co-sign rail. Caixa is the till it runs.
+            Aval — a shop till in the owner's chat. Caixa is this shop's deployment.
           </p>
           <p className="ml-auto font-mono text-[12.5px] text-muted">
             Custody tier T0 on the charge path. No keys held.
