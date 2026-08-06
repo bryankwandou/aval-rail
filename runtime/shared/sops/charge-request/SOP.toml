@@ -1,0 +1,20 @@
+[sop]
+name = "charge-request"
+description = "Turn an owner's chat message into a Solana Pay charge with a unique reference key."
+version = "1.0.0"
+
+# A charge is independent work: two tables can be billed at once, and neither
+# waits for the other. Parallel admission, several slots.
+max_concurrent = 4
+admission_policy = "parallel"
+
+# No approval gate on this SOP at all — building a payment request moves no
+# money and holds no key. The gate lives in refund-approval, where funds
+# actually leave.
+max_pending_approvals = 0
+
+# Channel trigger, not webhook. The webhook SOP trigger validates and loads
+# but never fires on current master (see 01-BUILD-LOG.md, finding 3).
+[[triggers]]
+type = "channel"
+channel = "telegram"

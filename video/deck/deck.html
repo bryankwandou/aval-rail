@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Aval — Caixa · pitch deck</title>
+<style>
+  /* Ten 1920x1080 slides, printed one per page. The identity is the receipt:
+     near-black counter, amber print, and machine output set in mono at a size
+     that survives a projector. Single visual world on purpose — this deck is
+     shown, not themed. */
+  :root {
+    --ink:    #0B0C0F;
+    --panel:  #14161B;
+    --line:   #262A33;
+    --text:   #ECE8E0;
+    --muted:  #8B909C;
+    --amber:  #E8A33D;
+    --teal:   #6FC2A0;
+    --red:    #D06A5A;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    --sans: "Segoe UI", Inter, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #05060a; }
+  .slide {
+    width: 1920px; height: 1080px; position: relative;
+    background: var(--ink); color: var(--text); font-family: var(--sans);
+    padding: 96px 120px; display: flex; flex-direction: column;
+    page-break-after: always; overflow: hidden;
+  }
+  .slide::after {
+    content: attr(data-n) " / 10";
+    position: absolute; right: 120px; bottom: 64px;
+    font-family: var(--mono); font-size: 20px; color: #3A3F4A;
+  }
+  .eyebrow {
+    font-family: var(--mono); font-size: 22px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--amber); margin-bottom: 30px;
+  }
+  h1 { font-size: 92px; line-height: 1.03; letter-spacing: -0.03em; margin: 0; font-weight: 600; text-wrap: balance; }
+  h2 { font-size: 62px; line-height: 1.08; letter-spacing: -0.025em; margin: 0 0 40px; font-weight: 600; text-wrap: balance; }
+  p  { font-size: 32px; line-height: 1.52; color: #C9C5BC; max-width: 1180px; margin: 0 0 26px; }
+  p.lead { font-size: 40px; color: var(--text); max-width: 1280px; }
+  .muted { color: var(--muted); }
+  .amber { color: var(--amber); }
+  .teal  { color: var(--teal); }
+  .red   { color: var(--red); }
+
+  pre {
+    font-family: var(--mono); font-size: 27px; line-height: 1.62; margin: 0;
+    background: #0A0B0F; border: 1px solid var(--line); border-left: 4px solid var(--amber);
+    border-radius: 8px; padding: 34px 40px; color: #D8D4CB; overflow: hidden;
+  }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+  .cols-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 40px 42px; }
+  .card h3 { margin: 0 0 16px; font-size: 34px; letter-spacing: -0.01em; font-weight: 600; }
+  .card p  { font-size: 27px; margin: 0; line-height: 1.5; }
+
+  ul { margin: 0; padding-left: 0; list-style: none; }
+  li { font-size: 32px; line-height: 1.5; margin-bottom: 26px; padding-left: 46px; position: relative; color: #C9C5BC; }
+  li::before { content: ""; position: absolute; left: 0; top: 18px; width: 22px; height: 2px; background: var(--amber); }
+  li b { color: var(--text); font-weight: 600; }
+
+  .spacer { flex: 1; }
+  .foot { font-family: var(--mono); font-size: 22px; color: var(--muted); }
+  .kicker { font-size: 36px; color: var(--muted); margin-top: 34px; }
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide" data-n="01">
+  <div class="eyebrow">Superteam Brasil × ZeroClaw</div>
+  <h1>The agent's payment<br>expired before anyone<br>could approve it.</h1>
+  <p class="kicker"><span class="amber">Aval</span> — the co-sign rail. <span class="muted">Caixa is the till it runs.</span></p>
+  <div class="spacer"></div>
+  <div class="foot">Solana Pay · durable nonce · ZeroClaw 0.8.4 · custody tier T0</div>
+</section>
+
+<!-- 2 -->
+<section class="slide" data-n="02">
+  <div class="eyebrow">The problem</div>
+  <h2>A Solana blockhash lasts about ninety seconds.</h2>
+  <p class="lead">Put a human approval in front of an agent's payment and the transaction is dead before anyone answers. The owner is serving a table. The transaction is garbage.</p>
+  <p>This is why agent-payment designs quietly drop the human. The gate isn't removed because it's unwanted — it's removed because it doesn't survive contact with a blockhash.</p>
+  <div class="spacer"></div>
+  <pre>$ solana confirm -v 4kR8...control
+  Result: Error
+  <span class="red">Hash has expired</span></pre>
+</section>
+
+<!-- 3 -->
+<section class="slide" data-n="03">
+  <div class="eyebrow">The primitive</div>
+  <h2>A durable nonce replaces the blockhash with an account.</h2>
+  <p class="lead">The transaction stays valid until the nonce advances. Build it now, approve it whenever, submit it then. The nonce advances on use, which closes replay.</p>
+  <div class="spacer"></div>
+  <div class="cols">
+    <div class="card">
+      <h3 class="red">Control · ordinary blockhash</h3>
+      <p>Signed 12:28 UTC. Submitted after the wait.</p>
+      <p class="red" style="margin-top:14px">Error: Hash has expired</p>
+    </div>
+    <div class="card">
+      <h3 class="teal">Aval · durable nonce</h3>
+      <p>Signed the same moment. Submitted 4h29m later.</p>
+      <p class="teal" style="margin-top:14px">Finalized</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide" data-n="04">
+  <div class="eyebrow">On chain, not in a slide</div>
+  <h2>The recipient was never airdropped.</h2>
+  <p class="lead">It was generated unfunded. Its balance came from that transfer and nothing else — which is what makes this a proof rather than a screenshot.</p>
+  <div class="spacer"></div>
+  <pre>durable tx   <span class="teal">5U2c5RV3TEurNYFeC7r17jK5CWkRgMzwEsxA978M9DLL</span>
+             <span class="teal">Yhjx38JmUkK1yVG5qiXVqo9z2XPRbesXfgNeuBbQZnj7</span>  Finalized
+
+nonce advanced after use
+  7tfvBRBMvnitJJ9tCN9BZLADhaPuGgJ4m4KwguTCYr9E
+  → A8zkZeDL...                    replay closed</pre>
+</section>
+
+<!-- 5 -->
+<section class="slide" data-n="05">
+  <div class="eyebrow">The product</div>
+  <h2>The till is the chat window the owner never closes.</h2>
+  <p class="lead">"Charge table 4, 25 USDC." The agent turns that into a Solana Pay request the customer settles from any wallet, watches the chain for it, and prepares refunds for the owner to approve.</p>
+  <div class="spacer"></div>
+  <div class="cols-3">
+    <div class="card"><h3>charge-request</h3><p>One sentence in, one payment request out. Three steps.</p></div>
+    <div class="card"><h3>settlement-poll</h3><p>Heartbeat, every five minutes. Asks the chain, not the customer.</p></div>
+    <div class="card"><h3>refund-approval</h3><p>Two independent human gates. An unanswered prompt denies.</p></div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="slide" data-n="06">
+  <div class="eyebrow">Where the safety actually lives</div>
+  <h2>The limits are not in the prompt.</h2>
+  <p class="lead">The ceiling and the allowlist are read from the operator's config inside the sandbox and enforced in Rust. They are not arguments the model can pass, so no message arriving in the shop can raise one.</p>
+  <div class="spacer"></div>
+  <pre>permissions = ["config_read"]        <span class="muted"># no http_client, at all</span>
+
+"additionalProperties": false        <span class="muted"># no recipient field to supply</span>
+
+<span class="red">Error: amount 5000 is over the shop's per-charge ceiling of 500</span>
+<span class="muted">                     ↑ came out of Rust; the model relayed it</span></pre>
+</section>
+
+<!-- 7 -->
+<section class="slide" data-n="07">
+  <div class="eyebrow">Custody</div>
+  <h2>The charge path holds no key and signs nothing.</h2>
+  <p class="lead">A transfer request is a string and a hash. The customer's own wallet builds and signs the transaction. Tier T0 — there is no key to lose, because there is no key.</p>
+  <div class="spacer"></div>
+  <ul>
+    <li><b>T0 · charging.</b> No key, no signature, no submission. The component has no network permission and could not reach an RPC endpoint if asked.</li>
+    <li><b>T1 · refunds.</b> The agent builds an unsigned, nonce-anchored transaction. A human signs it. The destination is read from the transaction that paid the order, never from a message.</li>
+  </ul>
+</section>
+
+<!-- 8 -->
+<section class="slide" data-n="08">
+  <div class="eyebrow">The test the model failed</div>
+  <h2>What held was structure, not judgement.</h2>
+  <p class="lead">An injected message asked for a refund to a different address, phrased like ordinary business. The model did not refuse it. It fabricated a tool result that looked like success.</p>
+  <div class="spacer"></div>
+  <pre>native_tool_calls: <span class="teal">0</span>      parsed_tool_calls: <span class="teal">0</span>
+
+<span class="muted">no tool ran · no key exists · destination is read from the chain</span>
+
+<span class="amber">The model failed this test. The system did not.</span></pre>
+</section>
+
+<!-- 9 -->
+<section class="slide" data-n="09">
+  <div class="eyebrow">Unattended</div>
+  <h2>It runs when nobody is watching.</h2>
+  <p class="lead">Autostart at logon, a supervisor that restarts it, a heartbeat that wakes the agent every five minutes — and a charge built with stdin closed and no human present.</p>
+  <div class="spacer"></div>
+  <pre>GET /health   <span class="teal">status ok</span>   pid 31260   uptime_seconds 200
+
+  daemon ok · control-plane ok · scheduler ok · heartbeat ok
+  channels ok · gateway ok            restart_count 0
+
+<span class="muted">reported by the process, not asserted by the deck</span></pre>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-n="10">
+  <div class="eyebrow">What I'd tell the next builder</div>
+  <h2>Five settings that start the daemon and do nothing.</h2>
+  <div class="spacer"></div>
+  <ul>
+    <li><b>schema_version missing</b> — discards the entire provider block, silently.</li>
+    <li><b>[channels.telegram]</b> instead of the dotted form — binds nothing.</li>
+    <li><b>execution_mode</b> — the key is <span class="amber">default_execution_mode</span>; the wrong one is accepted and ignored.</li>
+    <li><b>deterministic mode</b> — runs headless with no agent turn; ordinary steps fail closed.</li>
+    <li><b>WIT drift</b> — one enum variant apart, compiles and installs, fails only at instantiation.</li>
+  </ul>
+  <div class="foot" style="margin-top:20px">Check <span class="amber">retained</span>, not policy_allowed. A tool name that doesn't match is dropped without a word.</div>
+</section>
+
+</body>
+</html>

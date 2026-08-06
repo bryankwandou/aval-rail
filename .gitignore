@@ -1,0 +1,33 @@
+# Secrets — never commit these.
+#
+# .secret_key is the key that decrypts everything marked `enc2:` in config.toml.
+# Committing it would make the encrypted values in that file worthless, which is
+# the whole point of encrypting them at rest.
+runtime/.secret_key
+runtime/data/
+runtime/logs/
+runtime/agents/*/workspace/memory/
+*.pem
+*.key
+.env
+.env.*
+
+# Local state that says nothing to a reader
+node_modules/
+target/
+.next/
+out/
+.vercel/
+schema.json
+comp.out
+comp.err
+*.out
+*.err
+
+# Rendered artefacts — large, and reproducible from source by design
+video/remotion/out/
+video/out-web*/
+video/site-shots*/
+video/stills/
+*.mp4
+*.webm

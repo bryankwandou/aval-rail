@@ -1,0 +1,32 @@
+[sop]
+name = "refund-approval"
+description = "Build an unsigned refund anchored to a durable nonce, park it at a human gate, and let the owner sign whenever they get to it."
+version = "1.0.0"
+
+# One refund at a time. This is not a throughput concern — it is the nonce
+# account. One durable nonce account serialises to exactly one in-flight
+# transaction, so a second refund built against the same vault while the first
+# is still unsigned would invalidate one of them. Parallel refunds need a nonce
+# account each; the shop runs one, so the shop refunds one at a time.
+max_concurrent = 1
+admission_policy = "hold"
+
+# Bound how many refunds can sit waiting on the owner at once. Past this,
+# further requests are deferred rather than dropped. A run parked at the gate
+# releases its execution slot, so the ceiling here is what actually limits
+# pending refunds, not max_concurrent.
+max_pending_approvals = 3
+
+# NOT a channel trigger. The channel dispatcher hands every inbound message to
+# every channel-triggered SOP, and the payload it passes is the raw message
+# text, not JSON — so a `condition` written as `$.field == "..."` has nothing to
+# match against and cannot narrow it.
+#
+# Observed: one message reading "charge table 4, 25 USDC" started BOTH
+# procedures.
+#   SOP dispatch: 2 SOP(s) matched: ["charge-request", "refund-approval"]
+# A charge request must never open a refund run. So refunds are agent-initiated:
+# the agent reads the message, decides it is a refund, and calls `sop_execute`.
+
+[[triggers]]
+type = "manual"

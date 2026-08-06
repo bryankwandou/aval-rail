@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aval — Caixa, the shop till</title>
+<style>
+  /* A point-of-sale terminal commits to one look: it lives on a counter under
+     shop lighting and is read at arm's length. Single theme on purpose. */
+  :root {
+    --ink:       #0C0D10;
+    --panel:     #14161B;
+    --line:      #23262E;
+    --text:      #E7E4DD;
+    --muted:     #8A8E99;
+    --amber:     #E8A33D;   /* receipt-paper amber, carried from the demo page */
+    --green:     #4FB477;
+    --red:       #D06A5A;
+    --mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+    --sans: "Segoe UI", Inter, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--ink); color: var(--text);
+    font-family: var(--sans);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 24px 64px;
+  }
+  header { width: 100%; max-width: 980px; display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 20px; letter-spacing: -0.01em; margin: 0; font-weight: 600; }
+  .sub { color: var(--muted); font-size: 14px; }
+  .status {
+    margin-left: auto; display: flex; align-items: center; gap: 9px;
+    font-family: var(--mono); font-size: 12.5px; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .dot.up   { background: var(--green); box-shadow: 0 0 0 3px rgba(79,180,119,.15); }
+  .dot.down { background: var(--red); }
+
+  main { width: 100%; max-width: 980px; display: grid; gap: 20px; margin-top: 28px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; }
+  .card h2 { margin: 0 0 4px; font-size: 13px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .card p.hint { margin: 0 0 18px; color: var(--muted); font-size: 13.5px; }
+
+  .row { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; }
+  input, select {
+    background: #0F1116; color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px 14px; font-family: var(--mono); font-size: 15px;
+  }
+  input:focus, select:focus, button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  #label { flex: 2 1 220px; }
+  #amount { flex: 0 1 130px; text-align: right; font-variant-numeric: tabular-nums; }
+  #token { flex: 1 1 150px; }
+  button {
+    background: var(--amber); color: #1A1204; border: 0; border-radius: 8px;
+    padding: 12px 26px; font-size: 15px; font-weight: 650; cursor: pointer;
+    font-family: var(--sans);
+  }
+  button:disabled { opacity: .5; cursor: default; }
+
+  .out { margin-top: 20px; display: none; }
+  .out.on { display: block; }
+  .kv { display: grid; grid-template-columns: 116px 1fr; gap: 8px 18px; font-family: var(--mono); font-size: 14px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; word-break: break-all; }
+  .url {
+    margin-top: 18px; padding: 14px 16px; background: #0A0B0E; border: 1px solid var(--line);
+    border-left: 3px solid var(--amber); border-radius: 6px;
+    font-family: var(--mono); font-size: 13.5px; line-height: 1.65; color: #9FD3B4;
+    word-break: break-all; overflow-x: auto;
+  }
+  .err { border-left-color: var(--red); color: var(--red); }
+  .working { color: var(--muted); font-family: var(--mono); font-size: 13.5px; margin-top: 16px; }
+
+  footer { max-width: 980px; margin-top: 26px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+  code { font-family: var(--mono); color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <!-- One brand. Aval is the product; Caixa is this shop's deployment — the
+       config and its three procedures — and is never a second name. Read aloud:
+       "Caixa is the till; it runs on Aval." (09-NAMING-DECISION.md) -->
+  <h1>Aval</h1>
+  <span class="sub">Caixa · the shop till — Solana Pay over ZeroClaw</span>
+  <span class="status"><span class="dot" id="dot"></span><span id="statusText">checking agent…</span></span>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Take a payment</h2>
+    <p class="hint">Typed the way an owner would say it. The agent turns it into a Solana Pay request; the ceiling and the token allowlist are enforced in Rust, not here.</p>
+    <div class="row">
+      <input id="label"  value="table-7" aria-label="Order or table" placeholder="table-7">
+      <input id="amount" value="40" inputmode="decimal" aria-label="Amount">
+      <select id="token" aria-label="Token">
+        <option value="Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr">USDC (devnet)</option>
+        <option value="SOL">SOL</option>
+      </select>
+      <button id="go">Charge</button>
+    </div>
+
+    <div class="working" id="working" hidden>asking the agent…</div>
+
+    <div class="out" id="out">
+      <dl class="kv">
+        <dt>order</dt>      <dd id="oLabel"></dd>
+        <dt>amount</dt>     <dd id="oAmount"></dd>
+        <dt>reference</dt>  <dd id="oRef"></dd>
+      </dl>
+      <div class="url" id="oUrl"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  This page holds no keys and signs nothing. It posts one sentence to the daemon on
+  <code>127.0.0.1:42617</code>; the bearer token stays server-side. The customer's own
+  wallet builds and signs the transaction — custody tier T0.
+</footer>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  async function poll() {
+    try {
+      const r = await fetch('/status');
+      const h = await r.json();
+      const up = h.status === 'ok';
+      $('dot').className = 'dot ' + (up ? 'up' : 'down');
+      $('statusText').textContent = up
+        ? `agent up · ${Math.floor(h.runtime.uptime_seconds / 60)}m · pid ${h.runtime.pid}`
+        : 'agent down';
+    } catch {
+      $('dot').className = 'dot down';
+      $('statusText').textContent = 'agent unreachable';
+    }
+  }
+  poll();
+  setInterval(poll, 5000);
+
+  // The reply is prose from a model, but the values inside it came out of Rust.
+  // Pull them out rather than reformatting them: a till that re-renders an
+  // amount is worse than one that shows exactly what was built.
+  function extract(text) {
+    const url = (text.match(/solana:[^\s`"'<>)]+/) || [])[0];
+    if (!url) return null;
+    const q = new URLSearchParams(url.split('?')[1] || '');
+    return {
+      url,
+      reference: q.get('reference') || '',
+      amount: q.get('amount') || '',
+      token: q.get('spl-token') ? 'USDC' : 'SOL',
+      label: decodeURIComponent(q.get('label') || ''),
+    };
+  }
+
+  $('go').addEventListener('click', async () => {
+    const label = $('label').value.trim();
+    const amount = $('amount').value.trim();
+    const token = $('token').value;
+
+    $('go').disabled = true;
+    $('out').className = 'out';
+    $('working').hidden = false;
+
+    const ask = async (message) => {
+      const res = await fetch('/charge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      return res.json();
+    };
+
+    try {
+      let data = await ask(`Charge ${label} for ${amount} of token ${token}.`);
+      let parsed = extract(data.response || data.error || '');
+
+      // The model sometimes answers "I have processed the request" without ever
+      // calling the tool — the failure this project has now seen four times.
+      // The till does not take its word for it: no URL means no charge. One
+      // explicit retry, and if that also comes back empty the owner is told
+      // nothing was built rather than shown a payment that does not exist.
+      if (!parsed && !/ceiling|allowlist|refus/i.test(data.response || '')) {
+        $('working').textContent = 'no request came back — asking again, explicitly…';
+        data = await ask(
+          `Call the solana_pay_build tool for label "${label}", amount "${amount}", token "${token}". ` +
+            `Reply with the solana: URL exactly as the tool returned it.`
+        );
+        parsed = extract(data.response || data.error || '');
+      }
+      $('working').textContent = 'asking the agent…';
+
+      $('working').hidden = true;
+      $('out').className = 'out on';
+
+      if (!parsed) {
+        // The refusal path is not an error state to hide. An over-ceiling charge
+        // comes back refused in Rust, and the owner should read why.
+        $('oLabel').textContent = label;
+        $('oAmount').textContent = '—';
+        $('oRef').textContent = '—';
+        $('oUrl').className = 'url err';
+        $('oUrl').textContent = (data.response || data.error || 'no reply').trim();
+      } else {
+        $('oLabel').textContent = parsed.label;
+        $('oAmount').textContent = `${parsed.amount} ${parsed.token}`;
+        $('oRef').textContent = parsed.reference;
+        $('oUrl').className = 'url';
+        $('oUrl').textContent = parsed.url;
+      }
+    } catch (e) {
+      $('working').hidden = true;
+      $('out').className = 'out on';
+      $('oUrl').className = 'url err';
+      $('oUrl').textContent = String(e);
+    } finally {
+      $('go').disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
