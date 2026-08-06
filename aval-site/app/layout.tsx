@@ -31,11 +31,11 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aval — the co-sign rail for agent payments",
+  title: "Aval — a shop till that lives in the owner's chat",
   description:
-    "A Solana blockhash lasts about ninety seconds. Aval anchors an agent's payment to a durable nonce so it survives the human who has to approve it. Limits live in Rust, not in the prompt.",
+    "A shop till on ZeroClaw: the owner types a charge, the agent builds a Solana Pay request, the customer's wallet pays it. A durable nonce keeps it valid while a human approves. Limits live in Rust, not in the prompt.",
   openGraph: {
-    title: "Aval — the co-sign rail for agent payments",
+    title: "Aval — a shop till that lives in the owner's chat",
     description:
       "Durable nonce instead of a blockhash. Limits enforced in Rust. No keys held on the charge path.",
     type: "website",
